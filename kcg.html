@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>漢字クリックゲーム</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            transition: background-color 0.5s;
+        }
+
+        #game-container {
+            text-align: center;
+        }
+
+        #score-board {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        #start-button, #replay-button {
+            font-size: 18px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+
+        .kanji {
+            font-size: 36px;
+            position: absolute;
+            cursor: pointer;
+        }
+
+        #celebration {
+            font-size: 48px;
+            color: red;
+            display: none;
+        }
+
+        #instruction {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="instruction">50ポイントを目指しましょう！</div>
+        <div id="score-board">スコア: <span id="score">0</span></div>
+        <button id="start-button">ゲーム開始</button>
+        <div id="celebration">達成。</div>
+        <button id="replay-button" style="display: none;">リプレイ</button>
+    </div>
+    <audio id="positive-sound" src="positive.mp3" preload="auto"></audio>
+    <audio id="negative-sound" src="negative.mp3" preload="auto"></audio>
+    <script>
+        let score = 0;
+        let gameInterval;
+        const kanjiCharacters = ['彰', '章', '影', '景', '彰']; // 最後の'彰'を増やして正解を多めに
+        const targetScore = 50;
+
+        document.getElementById('start-button').addEventListener('click', startGame);
+        document.getElementById('replay-button').addEventListener('click', startGame);
+
+        function startGame() {
+            score = 0;
+            updateScore();
+            clearInterval(gameInterval);
+            document.getElementById('celebration').style.display = 'none';
+            document.getElementById('replay-button').style.display = 'none';
+            document.getElementById('start-button').style.display = 'none';
+            document.getElementById('instruction').style.display = 'none';
+            gameInterval = setInterval(spawnKanji, 1000);
+            document.body.style.backgroundColor = '#f0f0f0';
+        }
+
+        function spawnKanji() {
+            const kanjiElement = document.createElement('div');
+            const randomKanji = kanjiCharacters[Math.floor(Math.random() * kanjiCharacters.length)];
+            kanjiElement.textContent = randomKanji;
+            kanjiElement.classList.add('kanji');
+            kanjiElement.style.top = `${Math.random() * 80 + 10}%`;
+            kanjiElement.style.left = `${Math.random() * 80 + 10}%`;
+
+            kanjiElement.addEventListener('click', () => {
+                if (randomKanji === '彰') {
+                    score++;
+                    celebrate();
+                } else {
+                    score--;
+                    showDisappointment();
+                }
+                updateScore();
+                kanjiElement.remove();
+                if (score >= targetScore) {
+                    endGame();
+                }
+            });
+
+            document.body.appendChild(kanjiElement);
+
+            setTimeout(() => {
+                if (document.body.contains(kanjiElement)) {
+                    kanjiElement.remove();
+                }
+            }, 3000);  // 3秒後に消える
+        }
+
+        function updateScore() {
+            document.getElementById('score').textContent = score;
+        }
+
+        function celebrate() {
+            document.body.style.backgroundColor = '#d4edda'; // 緑色の背景に変更
+            document.getElementById('positive-sound').play();
+        }
+
+        function showDisappointment() {
+            document.body.style.backgroundColor = '#f8d7da'; // 赤色の背景に変更
+            document.getElementById('negative-sound').play();
+        }
+
+        function endGame() {
+            clearInterval(gameInterval);
+            document.querySelectorAll('.kanji').forEach(kanji => kanji.remove());
+            document.getElementById('celebration').style.display = 'block';
+            document.getElementById('replay-button').style.display = 'block';
+            document.getElementById('instruction').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
